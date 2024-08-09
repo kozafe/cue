@@ -48,6 +48,8 @@ const TextAreaForm = ({ control, name }: Input) => {
     }, 200);
   }, [!ref.current]);
 
+  const isPhone = window.innerWidth < 640;
+  const tips = isPhone ? "" : "(Tab + Enter will make ur task blazing fast!)";
   return (
     <Controller
       control={control}
@@ -58,7 +60,7 @@ const TextAreaForm = ({ control, name }: Input) => {
         return (
           <textarea
             ref={ref}
-            placeholder="ex: I need to open up VS Code"
+            placeholder={`ex: I need to open up VS Code ${tips}`}
             className={`border-[1px] ${
               error ? "border-[red]" : ""
             } w-full text-md mt-3 h-[100px] ${inputClassName}`}
@@ -81,13 +83,11 @@ const Form = ({
   const { control, handleSubmit } = useForm({
     defaultValues,
     resolver: yupResolver<FormDrawerType>(
-      yup
-        .object()
-        .shape({
-          title: yup.string().required(),
-          msg: yup.string().required(),
-          id: yup.string(),
-        })
+      yup.object().shape({
+        title: yup.string().required(),
+        msg: yup.string().required(),
+        id: yup.string(),
+      })
     ),
   });
 

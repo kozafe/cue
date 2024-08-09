@@ -57,7 +57,7 @@ const SearchInput = ({ placeholder }: { placeholder: string }) => {
 
     const add = (className?: string) => (
       <div
-        onClick={() => onSubmit()}
+        onClick={() => onSubmit({ title: search })}
         className={`${defaultClassName} absolute max-w-[95vw] sm:max-w-[50vw] ${className}`}
       >
         <p>
@@ -78,10 +78,13 @@ const SearchInput = ({ placeholder }: { placeholder: string }) => {
 
       return (
         <div className="relative">
-          <div className="absolute top-[-33px]  pl-4" style={{ zIndex: 200 }}>
+          <div className="absolute top-[-33px]  pl-4" style={{ zIndex: 1.1 }}>
             <p>
               <span className="text-transparent">{search}</span>
-              <span className="ml-2 bg-accentColors-lightTeal p-1">
+              <span
+                className="ml-2 bg-accentColors-lightTeal p-1 opacity-50 cursor-pointer"
+                onClick={() => setIsOpen(item)}
+              >
                 - {title}
               </span>
             </p>
@@ -92,16 +95,24 @@ const SearchInput = ({ placeholder }: { placeholder: string }) => {
     }
     return add();
   };
+
   return (
     <>
       <div className="w-[95vw] sm:w-[50vw]" style={{ zIndex: 1 }}>
         <Input
+          onBlur={() => {
+            if (isOpen) return;
+            ref.current?.focus();
+          }}
           ref={ref}
-          placeholder={placeholder}
+          placeholder={
+            items.length ? "Search or create your cue" : "Create your cue"
+          }
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => {
             const isEnter = e.key === "Enter";
             if (!isEnter) return;
+            if (!search) return;
             onSubmit();
           }}
           value={search}
@@ -110,7 +121,7 @@ const SearchInput = ({ placeholder }: { placeholder: string }) => {
 
         <FormDrawer
           isOpen={isOpen}
-          onClose={() => closeDrawer(closeDrawer)}
+          onClose={() => closeDrawer()}
           onSubmit={(values, isDelete) => {
             // delete update or create
             if (isDelete) {
@@ -142,6 +153,16 @@ const SearchInput = ({ placeholder }: { placeholder: string }) => {
 
 const safeMath = () => {
   const number = Math.random();
+
+  const isPhone = window.innerWidth < 640;
+  if (isPhone) {
+    if (number > 0.43 && number < 0.6) return safeMath();
+    if (number > 0.8) return safeMath();
+    if (number < 0.2) return safeMath();
+
+    return number;
+  }
+  if (number > 0.43 && number < 0.55) return safeMath();
   if (number > 0.95) return safeMath();
   if (number < 0.05) return safeMath();
   return number;
@@ -164,34 +185,64 @@ const MemoItems = ({
   }, [items.length]);
 
   return useMemo(() => {
-    return items.map((item, index) => {
-      const { title } = item;
-      const left = `${safeMath() * 100}vw`;
-      const top = `${safeMath() * 100}vh`;
-
-      const colorDecider = () => {
-        const number = Math.random();
-        if (number < 0.33) return "accentColors-softCoralRed"; // 33% chance
-        if (number < 0.66) return "accentColors-vibrantMustardYellow"; // 33% chance
-        return "accentColors-lightTeal"; // 34% chance
-      };
-      return (
-        <p
-          key={index}
-          className={`${
-            isChanged || !itemLength ? "opacity-100" : "opacity-0"
-          } cursor-pointer transition-opacity duration-500 ease-in-out absolute text-${colorDecider()} text-lg font-semibold`}
-          style={{
-            left,
-            top,
-          }}
-          onClick={() => onClick(item)}
-        >
-          {title}
-        </p>
-      );
-    });
+    return items.map((item, index) => (
+      <MemoItem
+        key={index}
+        isChanged={isChanged}
+        item={item}
+        itemLength={itemLength}
+        onClick={onClick}
+      />
+    ));
   }, [items]);
+};
+
+const MemoItem = ({
+  item,
+  isChanged,
+  itemLength,
+  onClick,
+}: {
+  onClick: (val: FormDrawerType) => any;
+  item: FormDrawerType;
+  isChanged: boolean;
+  itemLength: number;
+}) => {
+  const leftNumber = safeMath() * 100;
+  const leftRaw = `${leftNumber}vw`;
+  const [left, setLeft] = useState(leftRaw);
+  const { title } = item;
+  const top = `${safeMath() * 100}vh`;
+
+  const colorDecider = () => {
+    const number = Math.random();
+    if (number < 0.2) return "#ff6b6b"; // 33% chance
+    if (number < 0.4) return "#ffcc00"; // 33% chance
+    if (number < 0.6) return "#e3e8f0";
+    if (number < 0.8) return "#f4f4f4";
+    return "#72c1d1"; // 34% chance
+  };
+  return (
+    <p
+      ref={(e) => {
+        if (!e) return;
+        if (left.includes("calc")) return;
+        if (leftNumber * window.innerWidth + e.clientWidth > window.innerWidth)
+          return setLeft(`calc(${leftRaw} - ${e.clientWidth}px)`);
+      }}
+      className={`${
+        isChanged || !itemLength ? "opacity-100" : "opacity-0"
+      } cursor-pointer transition-opacity duration-500 ease-in-out absolute text-lg font-semibold`}
+      style={{
+        left,
+        top,
+        color: colorDecider(),
+      }}
+      onClick={() => onClick(item)}
+    >
+      {title}
+    </p>
+  );
 };
 
 export default SearchInput;
