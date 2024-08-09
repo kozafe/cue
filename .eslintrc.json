@@ -1,3 +1,13 @@
 {
-  "extends": "next/core-web-vitals"
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": ["next/core-web-vitals", "eslint:recommended", "prettier"],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
+    "import/extensions": "off",
+    "import/prefer-default-export": "warn"
+  }
 }
