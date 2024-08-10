@@ -158,7 +158,7 @@ const SearchInput = () => {
   return (
     <>
       <div className="w-[95vw] sm:w-[50vw]" style={{ zIndex: 1 }}>
-        <Toaster position="bottom-right" />
+        <Toaster position="top-right" />
         <Input
           onBlur={() => {
             if (isOpen) return;
