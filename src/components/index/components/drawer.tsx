@@ -40,7 +40,6 @@ const InputForm = ({ name, control }: Input) => (
     }}
   />
 );
-const isPhone = window.innerWidth < 640;
 
 const TextAreaForm = ({ control, name }: Input) => {
   const ref = useRef<HTMLTextAreaElement>(null);
@@ -62,6 +61,7 @@ const TextAreaForm = ({ control, name }: Input) => {
         return (
           <textarea
             onKeyDown={(e) => {
+              const isPhone = window.innerWidth < 640;
               if (isPhone) return;
               if (e.key === "Enter") {
                 if (e.shiftKey) return;
@@ -115,6 +115,7 @@ const Form = ({
 
   const [isPressed, setIsPressed] = useState(false);
   const isEdit = !!defaultValues.msg;
+  const isPhone = window.innerWidth < 640;
   return (
     <form
       onSubmit={handleSubmit((values) => onSubmit(values))}

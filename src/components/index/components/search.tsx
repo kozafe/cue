@@ -5,8 +5,6 @@ import { MdTransitEnterexit } from "react-icons/md";
 import FormDrawer, { FormDrawerType } from "./drawer";
 import toast, { Toaster } from "react-hot-toast";
 
-const isPhone = window.innerWidth < 640;
-
 const getRandomMessage = (type: "delete" | "update" | "add") => {
   const messagesDecider = () => {
     if (type === "delete")
@@ -164,6 +162,7 @@ const SearchInput = () => {
         <Input
           onBlur={() => {
             if (isOpen) return;
+            const isPhone = window.innerWidth < 640;
             if (isPhone) return;
             ref.current?.focus();
           }}
@@ -224,22 +223,6 @@ const SearchInput = () => {
   );
 };
 
-const safeMath = () => {
-  const number = Math.random();
-
-  if (isPhone) {
-    if (number > 0.43 && number < 0.6) return safeMath();
-    if (number > 0.8) return safeMath();
-    if (number < 0.2) return safeMath();
-
-    return number;
-  }
-  if (number > 0.43 && number < 0.55) return safeMath();
-  if (number > 0.95) return safeMath();
-  if (number < 0.05) return safeMath();
-  return number;
-};
-
 const MemoItems = ({
   items,
   onClick,
@@ -280,6 +263,23 @@ const MemoItem = ({
   isChanged: boolean;
   itemLength: number;
 }) => {
+  const safeMath = () => {
+    const number = Math.random();
+
+    const isPhone = window.innerWidth < 640;
+    if (isPhone) {
+      if (number > 0.43 && number < 0.6) return safeMath();
+      if (number > 0.8) return safeMath();
+      if (number < 0.2) return safeMath();
+
+      return number;
+    }
+    if (number > 0.43 && number < 0.55) return safeMath();
+    if (number > 0.95) return safeMath();
+    if (number < 0.05) return safeMath();
+    return number;
+  };
+
   const leftNumber = safeMath() * 100;
   const leftRaw = `${leftNumber}vw`;
   const [left, setLeft] = useState(leftRaw);
