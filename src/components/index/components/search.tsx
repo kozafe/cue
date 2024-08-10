@@ -3,8 +3,9 @@ import Input from "@/components/ui/input";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MdTransitEnterexit } from "react-icons/md";
 import FormDrawer, { FormDrawerType } from "./drawer";
-const isPhone = window.innerWidth < 640;
 import toast, { Toaster } from "react-hot-toast";
+
+const isPhone = window.innerWidth < 640;
 
 const getRandomMessage = (type: "delete" | "update" | "add") => {
   const messagesDecider = () => {
