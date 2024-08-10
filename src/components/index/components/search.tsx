@@ -3,8 +3,60 @@ import Input from "@/components/ui/input";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MdTransitEnterexit } from "react-icons/md";
 import FormDrawer, { FormDrawerType } from "./drawer";
+const isPhone = window.innerWidth < 640;
+import toast, { Toaster } from "react-hot-toast";
 
-const SearchInput = ({ placeholder }: { placeholder: string }) => {
+const getRandomMessage = (type: "delete" | "update" | "add") => {
+  const messagesDecider = () => {
+    if (type === "delete")
+      return [
+        "Poof! Deleted!",
+        "Gone with the wind!",
+        "Whoosh! Vanished!",
+        "Cue? What cue?",
+        "Bam! It’s outta here!",
+        "See ya, wouldn't wanna be ya!",
+        "Zap! Cue eliminated!",
+        "Hasta la vista, baby!",
+        "All gone, like magic!",
+        "Just like that, it’s gone!",
+      ];
+
+    if (type == "add")
+      return [
+        "Cue created!",
+        "New cue, who dis?",
+        "Voila! A new one!",
+        "Fresh out of the oven!",
+        "Boom! A new cue appears!",
+        "Brand new and shiny!",
+        "Cue added to the list!",
+        "Created! Let’s get it done!",
+        "Just made it!",
+        "Added to your list!",
+      ];
+
+    return [
+      "Updated and fresh!",
+      "Revamped and ready!",
+      "Polished to perfection!",
+      "Tweaked and improved!",
+      "Shiny and new!",
+      "Spruced up and ready!",
+      "Refreshed and better than ever!",
+      "Adjusted and perfected!",
+      "Changes saved!",
+      "Done! It's better now!",
+    ];
+  };
+
+  const messages = messagesDecider();
+
+  const randomIndex = Math.floor(Math.random() * messages.length);
+  return messages[randomIndex];
+};
+
+const SearchInput = () => {
   const [search, setSearch] = useState("");
 
   const [isOpen, setIsOpen] = useState<FormDrawerType | false>(false);
@@ -17,13 +69,21 @@ const SearchInput = ({ placeholder }: { placeholder: string }) => {
   };
 
   const [items, setItems] = useState<FormDrawerType[]>([]);
-
   const filteredItems = items
     .sort((a, b) => (a?.title || "").localeCompare(b?.title || ""))
-    .filter(
-      ({ msg, title }) =>
-        (title || "").includes(search) || (msg || "").includes(search)
-    );
+    .filter(({ msg, title }) => {
+      const noCase = (string: string) => (string || "").toLowerCase();
+
+      const checker = (string: string | undefined) =>
+        noCase(string || "").includes(noCase(search));
+
+      const initials = (title || "")
+        .split(" ")
+        .map((string) => string[0])
+        .join("");
+
+      return checker(title) || checker(msg) || checker(initials);
+    });
 
   const onSubmit = (item?: FormDrawerType) => {
     ref.current?.blur();
@@ -55,10 +115,10 @@ const SearchInput = ({ placeholder }: { placeholder: string }) => {
 
     if (!search) return null;
 
-    const add = (className?: string) => (
+    const add = (isNoIcon?: boolean) => (
       <div
         onClick={() => onSubmit({ title: search })}
-        className={`${defaultClassName} absolute max-w-[95vw] sm:max-w-[50vw] ${className}`}
+        className={`${defaultClassName} absolute max-w-[95vw] sm:max-w-[50vw]`}
       >
         <p>
           <span className="font-semibold text-accentColors-softCoralRed">
@@ -66,7 +126,7 @@ const SearchInput = ({ placeholder }: { placeholder: string }) => {
           </span>{" "}
           {search}{" "}
         </p>
-        <MdTransitEnterexit className="ml-2 mt-1" size={16} />
+        {!isNoIcon && <MdTransitEnterexit className="ml-2 mt-1" size={16} />}
       </div>
     );
 
@@ -85,11 +145,11 @@ const SearchInput = ({ placeholder }: { placeholder: string }) => {
                 className="ml-2 bg-accentColors-lightTeal p-1 opacity-50 cursor-pointer"
                 onClick={() => setIsOpen(item)}
               >
-                - {title}
+                - {title} (enter)
               </span>
             </p>
           </div>
-          {!isExist && add()}
+          {!isExist && add(true)}
         </div>
       );
     }
@@ -99,9 +159,11 @@ const SearchInput = ({ placeholder }: { placeholder: string }) => {
   return (
     <>
       <div className="w-[95vw] sm:w-[50vw]" style={{ zIndex: 1 }}>
+        <Toaster position="bottom-right" />
         <Input
           onBlur={() => {
             if (isOpen) return;
+            if (isPhone) return;
             ref.current?.focus();
           }}
           ref={ref}
@@ -125,6 +187,9 @@ const SearchInput = ({ placeholder }: { placeholder: string }) => {
           onSubmit={(values, isDelete) => {
             // delete update or create
             if (isDelete) {
+              toast(getRandomMessage("delete"), {
+                style: { backgroundColor: "#ff6b6b", color: "#1b355b" },
+              });
               const arr = items.filter(({ title }) => title !== values.title);
               return save(arr);
             }
@@ -132,6 +197,10 @@ const SearchInput = ({ placeholder }: { placeholder: string }) => {
             const isUpdate = items.find(({ id }) => id === values.id);
 
             if (isUpdate) {
+              toast(getRandomMessage("update"), {
+                style: { backgroundColor: "#ffcc00", color: "#1b355b" },
+              });
+
               const arr = items.map((item) => {
                 if (item.title === values.title) return values;
                 if (item.id === values.id) return values;
@@ -139,6 +208,9 @@ const SearchInput = ({ placeholder }: { placeholder: string }) => {
               });
               return save(arr);
             }
+            toast(getRandomMessage("add"), {
+              style: { backgroundColor: "#98ff98", color: "#1b355b" },
+            });
 
             const arr = [...items, { ...values, id: values.title }];
 
@@ -154,7 +226,6 @@ const SearchInput = ({ placeholder }: { placeholder: string }) => {
 const safeMath = () => {
   const number = Math.random();
 
-  const isPhone = window.innerWidth < 640;
   if (isPhone) {
     if (number > 0.43 && number < 0.6) return safeMath();
     if (number > 0.8) return safeMath();

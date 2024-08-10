@@ -5,6 +5,9 @@ import Input, { inputClassName } from "@/components/ui/input";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm, Control } from "react-hook-form";
+import { MdSave } from "react-icons/md";
+import { MdDelete } from "react-icons/md";
+import { MdClose } from "react-icons/md";
 
 export interface FormDrawerType {
   title?: string;
@@ -37,6 +40,7 @@ const InputForm = ({ name, control }: Input) => (
     }}
   />
 );
+const isPhone = window.innerWidth < 640;
 
 const TextAreaForm = ({ control, name }: Input) => {
   const ref = useRef<HTMLTextAreaElement>(null);
@@ -48,8 +52,6 @@ const TextAreaForm = ({ control, name }: Input) => {
     }, 200);
   }, [!ref.current]);
 
-  const isPhone = window.innerWidth < 640;
-  const tips = isPhone ? "" : "(Tab + Enter will make ur task blazing fast!)";
   return (
     <Controller
       control={control}
@@ -59,8 +61,26 @@ const TextAreaForm = ({ control, name }: Input) => {
         const { message: error } = fieldState?.error || {};
         return (
           <textarea
+            onKeyDown={(e) => {
+              if (isPhone) return;
+              if (e.key === "Enter") {
+                if (e.shiftKey) return;
+                e.preventDefault();
+                const form = e.currentTarget.form;
+                if (!form) return;
+                const index = Array.prototype.indexOf.call(
+                  form,
+                  e.currentTarget
+                );
+                if (form.elements[index + 1]) {
+                  const nextElement = form.elements[index + 1] as HTMLElement;
+                  nextElement.focus();
+                }
+              }
+              return e;
+            }}
             ref={ref}
-            placeholder={`ex: I need to open up VS Code ${tips}`}
+            placeholder="ex: I need to open up VS Code"
             className={`border-[1px] ${
               error ? "border-[red]" : ""
             } w-full text-md mt-3 h-[100px] ${inputClassName}`}
@@ -76,9 +96,11 @@ const TextAreaForm = ({ control, name }: Input) => {
 const Form = ({
   defaultValues,
   onSubmit,
+  onClose,
 }: {
   defaultValues: FormDrawerType;
   onSubmit: (value: FormDrawerType, isDelete?: boolean) => any;
+  onClose: () => void;
 }) => {
   const { control, handleSubmit } = useForm({
     defaultValues,
@@ -92,24 +114,33 @@ const Form = ({
   });
 
   const [isPressed, setIsPressed] = useState(false);
-
+  const isEdit = !!defaultValues.msg;
   return (
     <form
       onSubmit={handleSubmit((values) => onSubmit(values))}
-      className="flex flex-col justify-between h-full"
+      className="flex flex-col sm:justify-between h-full gap-2"
     >
       <div>
         <InputForm control={control} name="title" />
         <TextAreaForm control={control} name="msg" />
       </div>
       <div>
+        {isEdit && !isPhone && (
+          <button
+            onClick={onClose}
+            type="button"
+            className="border-[1px] border-primaryColor flex mb-3 flex-row justify-center rounded-[4px] text-sm font-semibold bg-neutralColors-lightGray text-primaryColor w-full p-2 text-base"
+          >
+            <MdClose size={24} />
+          </button>
+        )}
         <button
           type="submit"
-          className="rounded-[4px] text-sm font-semibold bg-accentColors-vibrantMustardYellow text-primaryColor w-full p-2 text-base"
+          className="flex flex-row justify-center rounded-[4px] text-sm font-semibold bg-accentColors-vibrantMustardYellow text-primaryColor w-full p-2 text-base"
         >
-          Save
+          <MdSave size={24} />
         </button>
-        {defaultValues.msg && (
+        {isEdit && (
           <button
             type="button"
             onClick={() => {
@@ -117,13 +148,13 @@ const Form = ({
 
               onSubmit(defaultValues, true);
             }}
-            className={`transition-all rounded-[4px] text-sm font-semibold ${
+            className={`justify-center flex flex-row transition-all rounded-[4px] text-md font-semibold ${
               isPressed
                 ? "bg-primaryColor text-accentColors-softCoralRed"
                 : "bg-accentColors-softCoralRed text-primaryColor"
             } w-full p-2 text-base mt-3`}
           >
-            {isPressed ? "Are you sure?" : "Delete"}
+            {isPressed ? "Are you sure?" : <MdDelete size={24} />}
           </button>
         )}
       </div>
@@ -144,11 +175,13 @@ const FormDrawer = ({
     <Drawer
       open={!!isOpen}
       direction="right"
-      className="md:min-w-[35vw] min-w-[90vw]"
+      className="sm:min-w-[35vw] min-w-[90vw]"
       onClose={onClose}
     >
       <div className="bg-complementaryColor h-full p-4">
-        {isOpen && <Form defaultValues={isOpen} onSubmit={onSubmit} />}
+        {isOpen && (
+          <Form defaultValues={isOpen} onSubmit={onSubmit} onClose={onClose} />
+        )}
       </div>
     </Drawer>
   );
